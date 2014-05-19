@@ -30,7 +30,7 @@ import {-# SOURCE #-}   TcIface( tcIfaceDecl, tcIfaceRules, tcIfaceInst,
                                  tcIfaceFamInst, tcIfaceVectInfo, tcIfaceAnnotations )
 
 import DynFlags
-import IfaceSyn
+import IfaceSyn hiding (pprIfaceDecl)
 import IfaceEnv
 import HscTypes
 

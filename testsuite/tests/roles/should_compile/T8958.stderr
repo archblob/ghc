@@ -4,20 +4,14 @@ T8958.hs:1:31: Warning:
 TYPE SIGNATURES
 TYPE CONSTRUCTORS
   Map :: * -> * -> *
+  type role Map nominal representational
   newtype (Nominal k, Representational v) => Map k v
-    No C type associated
-    Roles: [nominal, representational]
-    RecFlag NonRecursive, Promotable
-    = MkMap :: [(k, v)] -> Map k v Stricts: _
-    FamilyInstance: none
+    = MkMap [(k, v)]
   Nominal :: * -> Constraint
   class Nominal a
-    Roles: [nominal]
-    RecFlag NonRecursive
   Representational :: * -> Constraint
+  type role Representational representational
   class Representational a
-    Roles: [representational]
-    RecFlag NonRecursive
 COERCION AXIOMS
   axiom T8958.NTCo:Map :: Map k v = [(k, v)]
 INSTANCES

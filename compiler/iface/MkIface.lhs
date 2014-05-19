@@ -80,6 +80,7 @@ import DataCon
 import PatSyn
 import Type
 import TcType
+import TysPrim ( alphaTyVars )
 import InstEnv
 import FamInstEnv
 import TcRnMonad
@@ -1544,7 +1545,7 @@ coAxBranchToIfaceBranch' env0
                         (CoAxBranch { cab_tvs = tvs, cab_lhs = lhs
                                     , cab_roles = roles, cab_rhs = rhs })
   = IfaceAxBranch { ifaxbTyVars = toIfaceTvBndrs tv_bndrs
-                  , ifaxbLHS    = map (tidyToIfaceType env1) lhs
+                  , ifaxbLHS    = tidyToIfaceTcArgs env1 lhs
                   , ifaxbRoles  = roles
                   , ifaxbRHS    = tidyToIfaceType env1 rhs
                   , ifaxbIncomps = [] }
@@ -1578,24 +1579,46 @@ tyConToIfaceDecl env tycon
                 ifRec     = boolToRecFlag (isRecursiveTyCon tycon),
                 ifGadtSyntax = isGadtSyntaxTyCon tycon,
                 ifPromotable = isJust (promotableTyCon_maybe tycon),
-                ifAxiom   = fmap coAxiomName (tyConFamilyCoercion_maybe tycon) }
+                ifParent  = parent }
 
   | isForeignTyCon tycon
   = IfaceForeign { ifName    = getOccName tycon,
                    ifExtName = tyConExtName tycon }
 
-  | otherwise = pprPanic "toIfaceDecl" (ppr tycon)
+  | otherwise
+  -- For pretty printing purposes only.
+  = IfaceData { ifName       = getOccName tycon,
+                ifCType      = Nothing,
+                ifTyVars     = funAndPrimTyVars,
+                ifRoles      = tyConRoles tycon,
+                ifCtxt       = [],
+                ifCons       = IfDataTyCon [],
+                ifRec        = boolToRecFlag False,
+                ifGadtSyntax = False,
+                ifPromotable = False,
+                ifParent     = IfNoParent }
   where
     (env1, tyvars) = tidyTyClTyVarBndrs env (tyConTyVars tycon)
 
-    to_ifsyn_rhs OpenSynFamilyTyCon           = IfaceOpenSynFamilyTyCon
-    to_ifsyn_rhs (ClosedSynFamilyTyCon ax)
-      = IfaceClosedSynFamilyTyCon (coAxiomName ax)
-    to_ifsyn_rhs AbstractClosedSynFamilyTyCon = IfaceAbstractClosedSynFamilyTyCon
+    funAndPrimTyVars = toIfaceTvBndrs $ take (tyConArity tycon) alphaTyVars
+
+    parent = maybe IfNoParent toIfDataInstance (tyConFamInstSig_maybe tycon)
+      where toIfDataInstance (tc, ty, ax) =
+             IfDataInstance (coAxiomName ax) (toIfaceTyCon tc) (toIfaceTcArgs ty)
+
+    to_ifsyn_rhs OpenSynFamilyTyCon        = IfaceOpenSynFamilyTyCon
+    to_ifsyn_rhs (ClosedSynFamilyTyCon ax) = IfaceClosedSynFamilyTyCon axn ibr
+      where defs = fromBranchList $ coAxiomBranches ax
+            ibr  = map (coAxBranchToIfaceBranch' env1) defs
+            axn  = coAxiomName ax
+    to_ifsyn_rhs AbstractClosedSynFamilyTyCon
+      = IfaceAbstractClosedSynFamilyTyCon
+
     to_ifsyn_rhs (SynonymTyCon ty)
       = IfaceSynonymTyCon (tidyToIfaceType env1 ty)
 
-    to_ifsyn_rhs (BuiltInSynFamTyCon {}) = pprPanic "toIfaceDecl: BuiltInFamTyCon" (ppr tycon)
+    to_ifsyn_rhs (BuiltInSynFamTyCon {})
+      = pprPanic "toIfaceDecl: BuiltInFamTyCon" (ppr tycon)
 
 
     ifaceConDecls (NewTyCon { data_con = con })     = IfNewTyCon  (ifaceConDecl con)
@@ -1681,6 +1704,12 @@ classToIfaceDecl env clas
 --------------------------
 tidyToIfaceType :: TidyEnv -> Type -> IfaceType
 tidyToIfaceType env ty = toIfaceType (tidyType env ty)
+
+tidyToIfaceTcArgs :: TidyEnv -> [Type] -> IfaceTcArgs
+tidyToIfaceTcArgs _ [] = ITC_Nil
+tidyToIfaceTcArgs env (t:ts)
+  | isKind t  = ITC_Kind  (tidyToIfaceType env t) (tidyToIfaceTcArgs env ts)
+  | otherwise = ITC_Type  (tidyToIfaceType env t) (tidyToIfaceTcArgs env ts)
 
 tidyToIfaceContext :: TidyEnv -> ThetaType -> IfaceContext
 tidyToIfaceContext env theta = map (tidyToIfaceType env) theta

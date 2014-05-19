@@ -1,14 +1,10 @@
 TYPE SIGNATURES
 TYPE CONSTRUCTORS
   C1 :: * -> Constraint
-  class C1 a
-    Roles: [nominal]
-    RecFlag NonRecursive
+  class C1 a where
     meth1 :: a -> a
   C3 :: * -> Constraint
-  class C3 a
-    Roles: [nominal]
-    RecFlag NonRecursive
+  class C3 a where
     meth3 :: a -> Syn1 a
   Syn1 :: * -> *
   type Syn1 a = [a]

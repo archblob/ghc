@@ -37,7 +37,7 @@ T4306:
 T4201:
 	$(RM) -f T4201.hi T4201.o
 	'$(TEST_HC)' $(TEST_HC_OPTS) -c -O T4201.hs
-	'$(TEST_HC)' $(TEST_HC_OPTS) --show-iface T4201.hi | grep -B2 'Sym'
+	'$(TEST_HC)' $(TEST_HC_OPTS) --show-iface -dppr-debug T4201.hi | grep -B4 'Sym'
 
 # This one looped as a result of bogus specialisation
 T4903:
@@ -49,7 +49,7 @@ T4918:
 	$(RM) -f T4918.hi T4918.o T4918a.hi T4918a.o
 	'$(TEST_HC)' $(TEST_HC_OPTS) -c -O T4918a.hs
 	'$(TEST_HC)' $(TEST_HC_OPTS) -c -O T4918.hs
-	'$(TEST_HC)' $(TEST_HC_OPTS) --show-iface T4918.hi | grep 'C#'
+	'$(TEST_HC)' $(TEST_HC_OPTS) --show-iface -dppr-debug T4918.hi | grep -B1 'C#'
 
 EvalTest:
 	'$(TEST_HC)' $(TEST_HC_OPTS) -c -O EvalTest.hs -ddump-simpl -dsuppress-uniques | grep 'rght.*Dmd' | sed 's/^ *//'

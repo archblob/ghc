@@ -246,6 +246,9 @@ instance Data OccName where
   toConstr _   = abstractConstr "OccName"
   gunfold _ _  = error "gunfold"
   dataTypeOf _ = mkNoRepType "OccName"
+
+instance HasOccName OccName where
+  occName = id
 \end{code}
 
 

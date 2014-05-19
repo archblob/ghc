@@ -67,6 +67,7 @@ module Name (
         getSrcLoc, getSrcSpan, getOccString,
 
         pprInfixName, pprPrefixName, pprModulePrefix,
+        pprNameWithOcc,
 
         -- Re-export the OccName stuff
         module OccName
@@ -444,7 +445,10 @@ instance OutputableBndr Name where
 
 
 pprName :: Name -> SDoc
-pprName (Name {n_sort = sort, n_uniq = u, n_occ = occ})
+pprName name = pprNameWithOcc name (n_occ name)
+
+pprNameWithOcc :: Name -> OccName -> SDoc
+pprNameWithOcc (Name {n_sort = sort, n_uniq = u }) occ
   = getPprStyle $ \ sty ->
     case sort of
       WiredIn mod _ builtin   -> pprExternal sty uniq mod occ True  builtin
@@ -596,4 +600,3 @@ the overloaded function pprPrefixOcc.  It's easier where we know the
 type being pretty printed; eg the pretty-printing code in TypeRep.
 
 See Trac #7645, which led to this.
-

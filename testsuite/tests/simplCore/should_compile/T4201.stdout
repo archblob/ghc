@@ -1,3 +1,5 @@
-    {- Arity: 1, HasNoCafRefs, Strictness: <S,1*U()>m,
-       Unfolding: InlineRule (0, True, True)
-                  Eta.bof `cast` (Sym (Eta.NTCo:Foo[0]) ->_R <Eta.T>_R) -}
+  {- Arity: 1, HasNoCafRefs, Strictness: <S,1*U()>m,
+     Unfolding: InlineRule (0, True, True)
+                main:Eta.bof{v r6}
+                  `cast`
+                (Sym (main:Eta.NTCo:Foo{tc r0}[0]) ->_R <main:Eta.T{tc r2}>_R) -}
